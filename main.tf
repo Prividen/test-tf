@@ -13,8 +13,13 @@ provider "aws" {
   region = "us-west-2"
 }
 
+variable "TFC_WORKSPACE_NAME" {
+  type = string
+  default = ""
+}
+
 locals {
-  ws = "${terraform.workspace}"
+  ws = var.TFC_WORKSPACE_NAME != "" ?  "${var.TFC_WORKSPACE_NAME}" : "${terraform.workspace}"
 
   inst_type_ws_map = {
     stage = "t2.micro"
@@ -74,7 +79,7 @@ data "aws_security_group" "ssh_enabled" {
 
 resource "aws_instance" "test1" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = local.inst_type_ws_map[terraform.workspace]
+  instance_type = local.inst_type_ws_map["${local.ws}"]
   key_name = "mk-rsa"
   vpc_security_group_ids = [ data.aws_security_group.ssh_enabled.id ]
 
@@ -87,9 +92,9 @@ resource "aws_instance" "test1" {
 }
 
 resource "aws_instance" "test2" {
-  for_each = local.t2_ws_map[terraform.workspace]
+  for_each = local.t2_ws_map["${local.ws}"]
   ami = data.aws_ami.amazon_linux.id
-  instance_type = local.inst_type_ws_map[terraform.workspace]
+  instance_type = local.inst_type_ws_map["${local.ws}"]
   key_name = "mk-rsa"
   vpc_security_group_ids = [ data.aws_security_group.ssh_enabled.id ]
 
