@@ -1,10 +1,11 @@
 terraform {
-  backend "s3" {
-    bucket = "netology-e8vp"
-    key    = "0703/terrafrom.tfstate"
-    region = "us-west-2"
-    encrypt = true
-    dynamodb_table = "terraform-locks"
+  backend "remote" {
+    hostname = "app.terraform.io"
+    organization = "prividen-test-org"
+
+    workspaces {
+      prefix = "tfc-"
+    }
   }
 }
 
@@ -19,7 +20,7 @@ variable "TFC_WORKSPACE_NAME" {
 }
 
 locals {
-  ws = var.TFC_WORKSPACE_NAME != "" ?  "${var.TFC_WORKSPACE_NAME}" : "${terraform.workspace}"
+  ws = var.TFC_WORKSPACE_NAME != "" ?  trimprefix("${var.TFC_WORKSPACE_NAME}", "tfc-") : "${terraform.workspace}"
 
   inst_type_ws_map = {
     stage = "t2.micro"
